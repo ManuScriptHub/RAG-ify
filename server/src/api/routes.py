@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, HTTPException
+from fastapi import APIRouter, UploadFile, HTTPException, Header, Depends
 from pydantic import BaseModel
 from services.text_extractor import extract_text
 from services.chunking import chunking
@@ -7,8 +7,10 @@ from typing import List, Optional
 import json
 import time
 from datetime import datetime
+from core.config import settings
 
 router = APIRouter()
+
 
 class ChunkingRequest(BaseModel):
     model: Optional[str] = None
@@ -20,8 +22,14 @@ class EmbeddingRequest(BaseModel):
     model: str
     texts: List[str]
 
+def api_validation(X_API_KEY: str = Header(...)):
+    api_key = settings.API_KEY
+    if X_API_KEY != api_key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    return True
+
 @router.post("/extractor")
-async def upload_file(file: UploadFile):
+async def upload_file(file: UploadFile, api_key: str = Depends(api_validation)):
     try:
         start_time = time.time()
         
@@ -49,7 +57,7 @@ async def upload_file(file: UploadFile):
         await file.close()
 
 @router.post("/chunking")
-async def chunking_route(data: ChunkingRequest):
+async def chunking_route(data: ChunkingRequest, api_key: str = Depends(api_validation)):
     try:
         start_time = time.time()
 
@@ -75,7 +83,7 @@ async def chunking_route(data: ChunkingRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/embedding")
-async def embeddings_route(data: EmbeddingRequest):
+async def embeddings_route(data: EmbeddingRequest, api_key: str = Depends(api_validation)):
     try:
         start_time = time.time()
         
