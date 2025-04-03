@@ -2,7 +2,6 @@ import os
 
 from groq import Groq
 
-
 def llm_service(prompt: str, model: str, context: str):
     client = Groq(
         api_key="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",
