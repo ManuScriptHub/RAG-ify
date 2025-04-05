@@ -1,7 +1,8 @@
 import voyageai
 from typing import List
+from core.config import settings
 
-vo = voyageai.Client(api_key="pa-EX4UzuMG41P5EHGTdbSQyCM4LNaqrtkXtCX7gqNWXKe")
+voyage = voyageai.Client(api_key=settings.VOYAGE_API_KEY)
 
 def embed_texts(model: str, texts: List[str]):
     """
@@ -14,5 +15,5 @@ def embed_texts(model: str, texts: List[str]):
     Returns:
     - List of embeddings.
     """
-    result = vo.embed(texts, model=model, input_type="query")
+    result = voyage.embed(texts, model=model, input_type="query")
     return result.embeddings

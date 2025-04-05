@@ -8,19 +8,59 @@ import json
 import time
 from datetime import datetime
 from core.config import settings
+from controllers.users import get_users_data
+from controllers.users import get_user_data
+from controllers.users import create_user_data
+from controllers.users import update_user_data
+from controllers.users import delete_user_data
+from controllers.corpora import get_corpuses_data
+from controllers.corpora import get_corpus_data
+from controllers.corpora import create_corpus_data
+from controllers.corpora import update_corpus_data
+from controllers.corpora import delete_corpus_data
+from controllers.documents import (
+    get_documents_data, get_document_data, create_document_data, update_document_data, delete_document_data
+)
+
 
 router = APIRouter()
-
 
 class ChunkingRequest(BaseModel):
     model: Optional[str] = None
     chunk_size: Optional[int] = None
-    overlap: Optional[int] = None
+    chunk_overlap: Optional[int] = None
     context: str
 
 class EmbeddingRequest(BaseModel):
     model: str
     texts: List[str]
+
+class CreateUserRequest(BaseModel):
+    username: str
+    email: str
+    
+class UpdateUserRequest(BaseModel):
+    username: Optional[str] = ""
+    email: Optional[str] = ""
+    password: Optional[str] = ""
+
+class CreateCorporaRequest(BaseModel):
+    user_id: str
+    corpus_key: str
+
+class UpdateCorporaRequest(BaseModel):
+    user_id: str
+    corpus_key: str
+
+class CreateDocumentRequest(BaseModel):
+    userId: str
+    corpusId: int
+    docType: str
+    docName: str
+    sourceUrl: Optional[str] = None
+    tags: Optional[List[str]] = None
+    rawText: Optional[str] = None
+
 
 def api_validation(X_API_KEY: str = Header(...)):
     api_key = settings.API_KEY
@@ -71,7 +111,7 @@ async def chunking_route(data: ChunkingRequest, api_key: str = Depends(api_valid
         readable_time = datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S")
 
         formatted_chunks = [
-            {"chunkId": i+1, "chunkText": chunk["content"]}
+            {"chunk_id": i+1, "chunk_text": chunk["content"]}
             for i, chunk in enumerate(parsed_result)
         ]
 
@@ -94,7 +134,7 @@ async def embeddings_route(data: EmbeddingRequest, api_key: str = Depends(api_va
         readable_time = datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S")
 
         formatted_embeddings = [
-            {"embeddingId": i+1, "embeddingValue": emb}
+            {"embedding_id": i+1, "embedding_value": emb}
             for i, emb in enumerate(embeddings)
         ]
 
@@ -104,3 +144,74 @@ async def embeddings_route(data: EmbeddingRequest, api_key: str = Depends(api_va
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/users")
+async def get_users(api_key: str = Depends(api_validation)):
+    return get_users_data()
+
+@router.get("/user/{user_id}")
+async def get_user(user_id, api_key: str = Depends(api_validation)):
+    return get_user_data(user_id)
+
+
+
+@router.post('/user')
+async def create_user(request: CreateUserRequest, api_key: str = Depends(api_validation)):
+    return create_user_data(request.username, request.email)
+
+
+@router.put("/user/{user_id}")
+async def update_user(request: UpdateUserRequest, user_id, api_key: str = Depends(api_validation)):
+    return update_user_data(user_id, request.username, request.email, request.password)
+
+@router.delete("/user/{user_id}")
+async def delete_user(user_id: str, api_key: str = Depends(api_validation)):
+    return delete_user_data(user_id)
+
+
+
+# corpora routes
+@router.get("/corpuses")
+async def get_corpuses(api_key: str = Depends(api_validation)):
+    return get_corpuses_data()
+
+@router.get("/corpus/{corpus_id}")
+async def get_corpus(corpus_id, api_key: str = Depends(api_validation)):
+    return get_corpus_data(corpus_id)
+
+@router.post('/corpus')
+async def create_corpus(request: CreateCorporaRequest,  api_key: str = Depends(api_validation)):
+    return create_corpus_data(request.user_id, request.corpus_key)
+
+@router.put('/corpus')
+async def update_corpus(request: UpdateCorporaRequest,  api_key: str = Depends(api_validation)):
+    return update_corpus_data(request.user_id, request.corpus_key)
+
+@router.delete('/corpus/{corpus_id}')
+async def delete_corpus(corpus_id: str, api_key: str = Depends(api_validation)):
+    return delete_corpus_data(corpus_id)
+
+# document routes
+@router.get("/documents")
+async def get_documents(api_key: str = Depends(api_validation)):
+    return get_documents_data()
+
+@router.get("/document/{document_id}")
+async def get_document(document_id: str, api_key: str = Depends(api_validation)):
+    return get_document_data(document_id)
+
+@router.post("/document")
+async def create_document(request: CreateDocumentRequest, api_key: str = Depends(api_validation)):
+    document_data = request.dict()
+    return create_document_data(document_data)
+
+@router.put("/document/{document_id}")
+async def update_document(document_id: str, updates: dict, api_key: str = Depends(api_validation)):
+    return update_document_data(document_id, updates)
+
+@router.delete("/document/{document_id}")
+async def delete_document(document_id: str, api_key: str = Depends(api_validation)):
+    return delete_document_data(document_id)
+
+
