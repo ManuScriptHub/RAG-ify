@@ -1,0 +1,12 @@
+# Bytecode & cache
+*.pyc
+*.pyo
+__pycache__/
+
+# VSCode dev files
+.vscode/
+
+# Env files
+.env
+venv/
+.env.*

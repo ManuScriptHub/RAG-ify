@@ -2,24 +2,27 @@ from fastapi import APIRouter, UploadFile, HTTPException, Header, Depends
 from pydantic import BaseModel
 from services.text_extractor import extract_text
 from services.chunking import chunking
-from services.embedding import embed_texts
+from services.embedding import get_embedding
 from typing import List, Optional
 import json
 import time
 from datetime import datetime
 from core.config import settings
-from controllers.users import get_users_data
-from controllers.users import get_user_data
-from controllers.users import create_user_data
-from controllers.users import update_user_data
-from controllers.users import delete_user_data
-from controllers.corpora import get_corpuses_data
-from controllers.corpora import get_corpus_data
-from controllers.corpora import create_corpus_data
-from controllers.corpora import update_corpus_data
-from controllers.corpora import delete_corpus_data
+
+from controllers.users import (
+    get_users_data, get_user_data, create_user_data, update_user_data, delete_user_data
+)
+
+from controllers.corpora import (
+    get_corpuses_data, get_corpus_data, create_corpus_data, update_corpus_data, delete_corpus_data
+)
+
 from controllers.documents import (
     get_documents_data, get_document_data, create_document_data, update_document_data, delete_document_data
+)
+
+from controllers.document_chunk import (
+    get_documents_chunks, get_document_chunk, update_document_chunk, create_document_chunk, delete_document_chunk, search_document_chunk
 )
 
 
@@ -60,6 +63,23 @@ class CreateDocumentRequest(BaseModel):
     sourceUrl: Optional[str] = None
     tags: Optional[List[str]] = None
     rawText: Optional[str] = None
+
+class UpdateChunkRequest(BaseModel):
+    chunkText: Optional[str] = None
+    embeddingData: Optional[str] = None
+    metadata: Optional[str] = None
+
+class CreateChunkRequest(BaseModel):
+    documentId: str
+    chunkIndex: int
+    chunkText: str
+    embeddingData: str
+    metaData: Optional[str] = None
+
+class SearchRequest(BaseModel):
+    question: str
+    top_k: int = 5
+    model: Optional[str] = None
 
 
 def api_validation(X_API_KEY: str = Header(...)):
@@ -127,7 +147,7 @@ async def embeddings_route(data: EmbeddingRequest, api_key: str = Depends(api_va
     try:
         start_time = time.time()
         
-        embeddings = embed_texts(data.model, data.texts)
+        embeddings = get_embedding(data.model, data.texts)
 
         end_time = time.time()
         duration = round(end_time - start_time, 4)
@@ -215,3 +235,30 @@ async def delete_document(document_id: str, api_key: str = Depends(api_validatio
     return delete_document_data(document_id)
 
 
+@router.get("/chunks")
+async def get_documents_chunks_data(api_key: str = Depends(api_validation)):
+    return get_documents_chunks()
+
+@router.get("/chunk/{chunk_id}")
+async def get_document_chunk_data(chunk_id: str, api_key: str = Depends(api_validation)):
+    return get_document_chunk(chunk_id)
+
+@router.put("/chunk/{chunk_id}")
+async def update_document_chunk_data(chunk_id: str, request: UpdateChunkRequest, api_key: str = Depends(api_validation)):
+    updates = request.dict(exclude_none=True)
+    print(updates)
+    return update_document_chunk(chunk_id, updates)
+
+@router.post("/chunk")
+async def create_document_chunk_data(request: CreateChunkRequest, api_key: str = Depends(api_validation)):
+    chunk_data = request.dict()
+    return create_document_chunk(chunk_data)
+
+@router.delete("/chunk/{chunk_id}")
+async def delete_document_chunk_data(chunk_id: str, api_key: str = Depends(api_validation)):
+    return delete_document_chunk(chunk_id)  
+
+
+@router.post("/search")
+async def search_document_chunk_data(request: SearchRequest, api_key: str = Depends(api_validation)):
+    return search_document_chunk(request.question, request.top_k, request.model)

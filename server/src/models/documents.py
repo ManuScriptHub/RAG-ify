@@ -25,9 +25,9 @@ class DocumentsModel:
             row = cur.fetchone()
             if row:
                 columns = [
-                    "documentId", "userId", "corpusId", "docType", "docName", 
+"documentId", "userId", "corpusId", "docType", "docName", 
                     "sourceUrl", "createdAt", "updatedAt", "tags", "rawText"
-                ]
+]
                 return dict(zip(columns, row))  
             return None 
         except Exception as e:
@@ -86,7 +86,7 @@ class DocumentsModel:
             query = f'INSERT INTO "Documents" ({columns}) VALUES ({placeholders}) RETURNING "documentId";'
             cur.execute(query, tuple(document_data.values()))
             conn.commit()
-            return cur.fetchone()[0]  # Returns the ID of the newly created document
+            return cur.fetchone()[0]  
         except Exception as e:
             print(f"An error occurred in create_document: {e}")
             return None

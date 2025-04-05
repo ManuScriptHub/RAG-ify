@@ -4,7 +4,7 @@ from core.config import settings
 
 voyage = voyageai.Client(api_key=settings.VOYAGE_API_KEY)
 
-def embed_texts(model: str, texts: List[str]):
+def get_embedding(model: str, texts: List[str]):
     """
     Embeds a list of texts using Voyage AI.
     
