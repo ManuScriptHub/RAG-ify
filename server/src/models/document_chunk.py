@@ -94,7 +94,7 @@ class DocumentChunkModel:
             return False
         finally:
             if conn:
-                conn.close()
+                conn.close()    
 
     def search_document_chunk(self, question_embedding, top_k):
         conn = settings.get_db_connection()
@@ -111,7 +111,7 @@ class DocumentChunkModel:
             rows = cur.fetchall()
             return [dict(row) for row in rows]
         except Exception as e:
-            print(f"An error occurred in delete_document: {e}")
+            print(f"An error occurred in search_document_chunk: {e}")
             return False
         finally:
             if conn:
