@@ -20,11 +20,11 @@ class DocumentsModel:
         conn = settings.get_db_connection()  
         try:
             cur = conn.cursor()
-            query = 'SELECT * FROM "Documents" WHERE "documentId" = %s;'
+            query = 'SELECT * FROM "Documents" WHERE "docId" = %s;'
             cur.execute(query, (document_id,))
             row = cur.fetchone()
             if row:
-                columns = [
+                columns = ["docId",
 "documentId", "userId", "corpusId", "docType", "docName", 
                     "sourceUrl", "createdAt", "updatedAt", "tags", "rawText"
 ]
@@ -45,7 +45,7 @@ class DocumentsModel:
         try:
             cur = conn.cursor()
             set_clause = ', '.join([f'"{key}" = %s' for key in updates.keys()])
-            query = f'UPDATE "Documents" SET {set_clause} WHERE "documentId" = %s;'
+            query = f'UPDATE "Documents" SET {set_clause} WHERE "docId" = %s;'
             cur.execute(query, (*updates.values(), document_id))
             conn.commit()
             return cur.rowcount > 0  # Returns True if a row was updated
@@ -63,7 +63,7 @@ class DocumentsModel:
         conn = settings.get_db_connection()
         try:
             cur = conn.cursor()
-            query = 'DELETE FROM "Documents" WHERE "documentId" = %s;'
+            query = 'DELETE FROM "Documents" WHERE "docId" = %s;'
             cur.execute(query, (document_id,))
             conn.commit()
             return cur.rowcount > 0  # Returns True if a row was deleted
@@ -83,7 +83,7 @@ class DocumentsModel:
             cur = conn.cursor()
             columns = ', '.join([f'"{key}"' for key in document_data.keys()])
             placeholders = ', '.join(['%s'] * len(document_data))
-            query = f'INSERT INTO "Documents" ({columns}) VALUES ({placeholders}) RETURNING "documentId";'
+            query = f'INSERT INTO "Documents" ({columns}) VALUES ({placeholders}) RETURNING "docId";'
             cur.execute(query, tuple(document_data.values()))
             conn.commit()
             return cur.fetchone()[0]  

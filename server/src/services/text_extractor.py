@@ -1,12 +1,13 @@
 import io
+from bs4 import BeautifulSoup
 
-def extract_text(file_type, file_bytes):
+def extract_text(file_type, file_bytes_or_url):
     """
-    Extracts text from file bytes based on the file type.
+    Extracts text from file bytes or a URL based on the file type.
 
     Parameters:
-    - file_type: A string indicating the file type (e.g., 'pdf', 'docx', 'pptx', 'img').
-    - file_bytes: The file content as bytes.
+    - file_type: A string indicating the file type (e.g., 'pdf', 'docx', 'pptx', 'img', 'url').
+    - file_bytes_or_url: The file content as bytes or a URL string.
 
     Returns:
     - A string containing the extracted text.
@@ -14,29 +15,24 @@ def extract_text(file_type, file_bytes):
     file_type = file_type.lower()
 
     if file_type == 'pdf':
-        # For PDF files using PyPDF2
-        from PyPDF2 import PdfReader
-        bytes_io = io.BytesIO(file_bytes)
-        reader = PdfReader(bytes_io)
-        text = ""
-        for page in reader.pages:
-            extracted = page.extract_text()
-            if extracted:
-                text += extracted + "\n"
-        return text
+        import pymupdf
+        import pymupdf4llm
+
+        bytes_io = io.BytesIO(file_bytes_or_url)
+        doc = pymupdf.open(stream=bytes_io, filetype="pdf")
+        md_text = pymupdf4llm.to_markdown(doc)
+        return md_text
 
     elif file_type == 'docx':
-        # For DOCX files using python-docx
         import docx
-        bytes_io = io.BytesIO(file_bytes)
+        bytes_io = io.BytesIO(file_bytes_or_url)
         doc = docx.Document(bytes_io)
         text = "\n".join([para.text for para in doc.paragraphs])
         return text
 
     elif file_type in ['ppt', 'pptx']:
-        # For PowerPoint files using python-pptx
         from pptx import Presentation
-        bytes_io = io.BytesIO(file_bytes)
+        bytes_io = io.BytesIO(file_bytes_or_url)
         prs = Presentation(bytes_io)
         text_runs = []
         for slide in prs.slides:
@@ -46,26 +42,26 @@ def extract_text(file_type, file_bytes):
         return "\n".join(text_runs)
 
     elif file_type in ['img', 'jpeg', 'jpg', 'png']:
-        # For images using pytesseract and Pillow
         from PIL import Image
         import pytesseract
-        bytes_io = io.BytesIO(file_bytes)
+        bytes_io = io.BytesIO(file_bytes_or_url)
         image = Image.open(bytes_io)
         text = pytesseract.image_to_string(image)
         return text
 
+    elif file_type == 'url':
+        import requests
+        from bs4 import BeautifulSoup
+
+        response = requests.get(file_bytes_or_url)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        for tag in soup(['script', 'style']):
+            tag.decompose()
+        
+        text = soup.get_text(separator='\n')
+        return '\n'.join(line.strip() for line in text.splitlines() if line.strip())
+
     else:
         raise ValueError("Unsupported file type")
-
-# Example usage:
-if __name__ == "__main__":
-    # Let's assume 'file_bytes' is obtained from a file upload.
-    # For demonstration, read a local file as bytes (replace with your actual file bytes).
-    file_type = "pdf"
-    try:
-        with open(r"D:\Resources\Resume\Resu.pdf", "rb") as f:
-            file_bytes = f.read()
-        text_content = extract_text(file_type, file_bytes)
-        print("Extracted text:\n", text_content)
-    except Exception as e:
-        print("An error occurred:", e)
