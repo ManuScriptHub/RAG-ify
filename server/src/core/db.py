@@ -6,11 +6,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    DB_NAME: str = os.getenv("DB_NAME")
-    DB_HOST: str = os.getenv("DB_HOST")
-    DB_PASS: str = os.getenv("DB_PASS")
-    DB_PORT: str = os.getenv("DB_PORT")
-    DB_USER: str = os.getenv("DB_USER")
+    # DB_NAME: str = os.getenv("DB_NAME")
+    # DB_HOST: str = os.getenv("DB_HOST")
+    # DB_PASS: str = os.getenv("DB_PASS")
+    # DB_PORT: str = os.getenv("DB_PORT")
+    # DB_USER: str = os.getenv("DB_USER")
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=RAG-ify
+# DB_USER=postgres
+# DB_PASS=radhe
+    
+    
+    DB_NAME: str = "RAG-ify"
+    DB_HOST: str = "localhost"
+    DB_PASS: str = "radhe"
+    DB_PORT: str = 5432
+    DB_USER: str = "postgres"
+    
 
     def get_db_connection(self):
         try:
