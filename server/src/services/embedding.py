@@ -1,8 +1,15 @@
 import voyageai
 from typing import List
-from core.config import settings
+# from core.config import settings
 
-voyage = voyageai.Client(api_key=settings.VOYAGE_API_KEY)
+# voyage = voyageai.Client(api_key=settings.VOYAGE_API_KEY)
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+api_key = os.getenv("VOYAGE_API_KEY")
+
+voyage = voyageai.Client(api_key=api_key)
 
 def get_embedding(model: str, texts: List[str]):
     """

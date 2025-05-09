@@ -1,9 +1,16 @@
 import voyageai
 from typing import List
+from dotenv import load_dotenv
+import os
+
 # from core.config import settings
 
 # voyage = voyageai.Client(api_key=settings.VOYAGE_API_KEY)
-voyage = voyageai.Client(api_key="pa-EX4UzuMG41P5EHGTdbSQyCM4LNaqrtkXtCX7gqNWXKe")
+
+load_dotenv()
+api_key = os.getenv("VOYAGE_API_KEY")
+
+voyage = voyageai.Client(api_key=api_key)
 
 def re_rank(query: str, documents: List[str], model: str = "rerank-2", top_k: int = 3):
     """
