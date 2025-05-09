@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 # import psycopg2
 
 # def check_db_connection():
@@ -51,9 +53,55 @@
 #     data()
 
 
-tup = ("ff", "fff")
-print(dict(tup))
+# import pymupdf4llm
+# print(dir(pymupdf4llm))
+
+from euriai import EuriaiClient
+from dotenv import load_dotenv
+
+# Load variables from .env file
+load_dotenv()
+
+# Get the API key from environment variable
+api_key = os.getenv("EURIAI_API_KEY")
+
+if not api_key:
+    raise ValueError("EURIAI_API_KEY not found in environment")
+
+client = EuriaiClient(
+    api_key=api_key,  # Replace with your actual API key
+    model="gpt-4.1-nano"  # You can also try: "gemini-2.0-flash-001", "llama-4-maverick", etc.
+)
+
+response = client.generate_completion(
+    prompt="List the popluar sports team no matter the sport.",
+    temperature=0.7,
+    max_tokens=300
+)
+
+print(response['choices'][0]['message']['content'])
+
+# from llama_cloud_services import LlamaParse
+
+load_dotenv()
+api_key = os.getenv("LLAMA_API_KEY")
+
+if not api_key:
+    raise ValueError("LLAMA_API_KEY not found in environment")
+
+# parser = LlamaParse(
+#     api_key="api_key",  # can also be set in your env as LLAMA_CLOUD_API_KEY
+#     num_workers=4,       # if multiple files passed, split in `num_workers` API calls
+#     verbose=True,
+#     language="en",       # optionally define a language, default=en
+# )
+
+# # sync
+# result = parser.parse(r"C:\Users\Admin\Downloads\irc.gov.in.018.2000.pdf")
+# markdown_documents = result.get_markdown_documents(split_by_page=True)
+# with open("output.md", "w", encoding="utf-8") as f:
+#     for doc in markdown_documents:
+#         f.write(str(doc) + "\n\n")
 
 
-
-[('660dd35c004a4843bfca4d0ba3600da0', 'manu', 'm@outlook.com', 'read', datetime.datetime(2025, 4, 4, 18, 52, 39, 136514, tzinfo=datetime.timezone(datetime.timedelta(seconds=19800))), datetime.datetime(2025, 4, 4, 18, 52, 39, 136514, tzinfo=datetime.timezone(datetime.timedelta(seconds=19800))))]
+# print(result)  # Corrected the syntax by removing the extra (result) at the end
