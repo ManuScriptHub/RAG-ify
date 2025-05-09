@@ -85,12 +85,8 @@ class AuthModel:
             if user:
                 result_columns = [desc[0] for desc in cur.description]
                 result = dict(zip(result_columns, user))
-                logger.info(f"User registered successfully: {username}")
-                
                 # Remove sensitive information
-                if "passwordHash" in result:
-                    del result["passwordHash"]
-                
+                result.pop("passwordHash", None)
                 return {"results": result, "message": "Registration successful", "status_code": 201}
             
             logger.error("Failed to register user")
@@ -106,8 +102,7 @@ class AuthModel:
             return {"error": "Database connection error", "status_code": 503}
         except Exception as e:
             logger.error(f"An error occurred in register_user: {e}")
-            conn.rollback()
-            return {"error": f"Failed to register user: {str(e)}", "status_code": 500}
+            return {"error": "Failed to register user", "status_code": 500}
         finally:
             if conn:
                 conn.close()
@@ -142,18 +137,10 @@ class AuthModel:
             
             # Verify password
             if not self._verify_password(password, user_dict["passwordHash"]):
-                logger.error(f"Invalid password for user: {email}")
                 return {"error": "Invalid email or password", "status_code": 401}
             
-            # Update last login time (optional)
-            now = datetime.now(timezone.utc)
-            update_query = 'UPDATE "Users" SET "updatedAt" = %s WHERE "userId" = %s;'
-            cur.execute(update_query, (now, user_dict["userId"]))
-            conn.commit()
-            
             # Remove sensitive information
-            if "passwordHash" in user_dict:
-                del user_dict["passwordHash"]
+            user_dict.pop("passwordHash", None)
             
             logger.info(f"User logged in successfully: {email}")
             return {"results": user_dict, "message": "Login successful", "status_code": 200}
@@ -163,7 +150,7 @@ class AuthModel:
             return {"error": "Database connection error", "status_code": 503}
         except Exception as e:
             logger.error(f"An error occurred in login_user: {e}")
-            return {"error": f"Failed to login: {str(e)}", "status_code": 500}
+            return {"error": "Failed to login", "status_code": 500}
         finally:
             if conn:
                 conn.close()

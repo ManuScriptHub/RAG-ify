@@ -24,10 +24,8 @@ def register_user_controller(user_data):
         raise HTTPException(status_code=400, detail="Username, email, and password are required")
     
     response = auth_model.register_user(username, email, password)
-    
     if "error" in response:
-        status_code = response.get("status_code", 500)
-        raise HTTPException(status_code=status_code, detail=response["error"])
+        raise HTTPException(status_code=response.get("status_code", 500), detail=response["error"])
     
     return response
 
@@ -51,10 +49,8 @@ def login_user_controller(login_data):
         raise HTTPException(status_code=400, detail="Email and password are required")
     
     response = auth_model.login_user(email, password)
-    
     if "error" in response:
-        status_code = response.get("status_code", 500)
-        raise HTTPException(status_code=status_code, detail=response["error"])
+        raise HTTPException(status_code=response.get("status_code", 500), detail=response["error"])
     
     return response
 

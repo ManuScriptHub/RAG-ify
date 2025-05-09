@@ -28,6 +28,8 @@ from controllers.document_chunk import (
 
 from services.process_document import process_document
 
+from controllers.auth import register_user_controller, login_user_controller
+
 
 
 router = APIRouter()
@@ -106,6 +108,13 @@ class RerankRequest(BaseModel):
     documents: List[str]
     model: str = "rerank-2"
     top_k: Optional[int] = 3
+
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+
+class RegisterRequest(AuthRequest):
+    username: str
 
 def api_validation(X_API_KEY: str = Header(...)):
     api_key = settings.API_KEY
@@ -727,3 +736,17 @@ async def rerank_documents(request: RerankRequest, api_key: str = Depends(api_va
         return {"results": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/auth/register", status_code=201)
+async def register_user(request: RegisterRequest, api_key: str = Depends(api_validation)):
+    """
+    Register a new user.
+    """
+    return register_user_controller(request.dict())
+
+@router.post("/auth/login", status_code=200)
+async def login_user(request: AuthRequest, api_key: str = Depends(api_validation)):
+    """
+    Login a user.
+    """
+    return login_user_controller(request.dict())
