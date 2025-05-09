@@ -74,7 +74,7 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
 
         extracted_text = extract_text(file_type, document_bytes_or_url)
         prompt = get_tag_prompt(extracted_text)
-        raw_response = llm_service(prompt, model="gpt")
+        raw_response = llm_service(prompt, model="gpt", return_full_response=True)
         if not raw_response:
             print("LLM service returned empty response")
             raise RuntimeError("Empty response from LLM service")

@@ -46,24 +46,31 @@ client = EuriaiClient(
     model="gpt-4.1-mini"
 )
 
-def llm_service(prompt: str, model: str = "gpt-4.1-mini", context: str = None):
+def llm_service(
+    prompt: str,
+    model: str = "gpt-4.1-mini",
+    context: str = None,
+    return_full_response: bool = False  # << Add this flag
+):
     try:
-        # Emulate system + user messages manually
         system_message = "You are a helpful assistant."
         if context:
             prompt_template = f"{system_message}\n\n{context}\n\nQuestion: {prompt}\nAnswer:"
         else:
             prompt_template = f"{system_message}\n\nQuestion: {prompt}\nAnswer:"
-        
+
         response = client.generate_completion(
             prompt=prompt_template,
             temperature=0.7,
             max_tokens=300
         )
 
-        return response["choices"][0]["message"]["content"]
-        # return json.dumps(response, indent=2)
-    
+        # Optionally return full response
+        if return_full_response:
+            return json.dumps(response, indent=2)  # or just `response` if JSON-serializable
+        else:
+            return response["choices"][0]["message"]["content"]
+
     except Exception as e:
         print(f"An error occurred in llm_service: {e}")
         return None
