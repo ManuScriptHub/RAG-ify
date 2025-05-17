@@ -97,7 +97,6 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
                 "userId": userId,
                 "corpusKey": corpus_key
             })
-
             if not corpora_result or not corpora_result.get("results"):
                 raise HTTPException(status_code=500, detail="Failed to create or fetch corpus")
 
@@ -114,6 +113,7 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
             document_data["tags"] = Json(document_tags)
             document_data["docType"] = file_type
             document_data["docName"] = file_name
+            document_data["documentId"]= document_id
             if file_type == "url":
                 document_data["sourceUrl"] = f"{file_name}"
             document_result = create_document_data(document_data)
@@ -126,9 +126,7 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
             chunk_data["chunkIndex"] = chunk["chunk_number"]
             chunk_data["chunkText"] =  chunk["content"]
             chunk_data["documentId"] = document_id
-            chunk_data["metaData"] =  json.dumps({
-                "summary": "a dummy data"
-            })
+            chunk_data["metaData"] =  llm_service(prompt, model="gpt", return_full_response=True)
             result = create_document_chunk(chunk_data)
             if not result or not result.get("results"):
                 raise HTTPException(status_code=500, detail="Failed to create document chunk")

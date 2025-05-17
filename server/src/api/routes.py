@@ -72,6 +72,7 @@ class CreateDocumentRequest(BaseModel):
     sourceUrl: Optional[str] = None
     tags: Optional[List[str]] = None
     rawText: Optional[str] = None
+    documentId: str
 
 class UpdateDocumentRequest(BaseModel):
     userId: Optional[str] = None
@@ -98,6 +99,8 @@ class SearchRequest(BaseModel):
     question: str
     top_k: int = 5
     model: Optional[str] = None
+    corpusKey: str
+    threshold: float = 0.8
 
 class ProcessDocumentRequest(BaseModel):
     corpusKey: str
@@ -690,7 +693,7 @@ async def search_document_chunk_data(
     - **top_k**: Maximum number of results to return (default: 5)
     - **model**: The embedding model to use (optional)
     """
-    return search_document_chunk(request.question, request.top_k, request.model)
+    return search_document_chunk(request.question, request.top_k, request.model, request.corpusKey, request.threshold)
 
 @router.post("/process/document")
 async def process_document_data(

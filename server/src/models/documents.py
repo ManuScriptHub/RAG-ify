@@ -210,6 +210,7 @@ class DocumentsModel:
         try:
             cur = conn.cursor()
             columns = ', '.join([f'"{key}"' for key in document_input_data.keys()]) 
+            print("closs", columns)
             placeholders = ', '.join(['%s'] * len(document_input_data))
             query = f'INSERT INTO "Documents" ({columns}) VALUES ({placeholders}) RETURNING *;'
             cur.execute(query, tuple(document_input_data.values()))

@@ -104,7 +104,7 @@ def delete_document_chunk(chunk_id):
     
     return {"results": [{"message": "Document chunk deleted successfully"}]}
 
-def search_document_chunk(question, top_k, model):
+def search_document_chunk(question, top_k, model, corpus_key, threshold):
     if not question:
         raise HTTPException(status_code=400, detail="Search question is required")
         
@@ -120,7 +120,7 @@ def search_document_chunk(question, top_k, model):
         question_embedding = question_embedding[0]
         
         # Search for relevant chunks
-        chunks = documents_data.search_document_chunk(question_embedding, top_k)
+        chunks = documents_data.search_document_chunk(question_embedding, top_k, corpus_key, threshold)
         
         if not chunks or len(chunks) == 0:
             return {"results": ["No relevant information found for your question."]}

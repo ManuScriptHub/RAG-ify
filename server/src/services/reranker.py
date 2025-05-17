@@ -25,7 +25,7 @@ def re_rank(query: str, documents: List[str], model: str = "rerank-2", top_k: in
     Returns:
     - A list of reranked documents with their relevance scores.
     """
-    print("gggg",query, documents)
+    # print("gggg",query, documents)
     reranking = voyage.rerank(query, documents, model=model, top_k=top_k)
     return reranking.results[:top_k]
 

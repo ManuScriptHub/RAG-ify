@@ -149,26 +149,47 @@ class DocumentChunkModel:
             if conn:
                 conn.close()    
 
-    def search_document_chunk(self, question_embedding, top_k):
+    def search_document_chunk(self, question_embedding, top_k, corpus_key: str, threshold: float):
+        print(f"we got {corpus_key} with  {threshold} value")
         conn = settings.get_db_connection()
         try:
             cur = conn.cursor()
-            query = '''
-            SELECT * FROM "DocumentChunks"
-            WHERE "embeddingData" <=> %s::vector < 1
-            ORDER BY "embeddingData" <=> %s::vector
-            LIMIT %s;
-        '''
 
-            cur.execute(query, (question_embedding, question_embedding, top_k))
+            # Step 1: Get corpus_id
+            cur.execute('SELECT "corpusId" FROM "Corpora" WHERE "corpusKey" = %s;', (corpus_key,))
+            corpus_row = cur.fetchone()
+            if not corpus_row:
+                print("No corpus found for the given key.")
+                return {"results": "no corpus found"}
+
+            corpus_id = corpus_row[0]
+
+            # Step 2: Get all document_ids under this corpus
+            cur.execute('SELECT "documentId" FROM "Documents" WHERE "corpusId" = %s;', (corpus_id,))
+            document_ids = [row[0] for row in cur.fetchall()]
+            if not document_ids:
+                print("No documents found for the corpus.")
+                return {"results": "no documents found"}
+
+            # Step 3: Main vector similarity query with additional filters
+            query = f'''
+                SELECT * FROM "DocumentChunks"
+                WHERE "embeddingData" <=> %s::vector < %s
+                AND "documentId" = ANY(%s)
+                ORDER BY "embeddingData" <=> %s::vector
+                LIMIT %s;
+            '''
+
+            cur.execute(query, (question_embedding, threshold, document_ids, question_embedding, top_k))
             rows = cur.fetchall()
-            print("success:",rows)
+
             result = []
             if rows:
-                columns = [desc[0] for desc in cur.description]  # Extract column names
+                columns = [desc[0] for desc in cur.description]
                 for row in rows:
-                    result.append(dict(zip(columns, row)))  # Convert each row to dictionary
+                    result.append(dict(zip(columns, row)))
             return result
+
         except Exception as e:
             print(f"An error occurred in search_document_chunk: {e}")
             return {"results": "no data found"}

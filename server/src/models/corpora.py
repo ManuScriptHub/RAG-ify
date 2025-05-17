@@ -101,66 +101,76 @@ class CorporaModel:
                 conn.close()
 
     def create_corpus(self, corpus_data_input):
-        conn = settings.get_db_connection()  
+        conn = settings.get_db_connection()
         try:
             if conn is None:
                 logger.error("Database connection failed")
                 return {"error": "Database connection failed", "status_code": 503}
-                
+
             if not corpus_data_input or not isinstance(corpus_data_input, dict):
                 logger.error("Invalid corpus data format")
                 return {"error": "Corpus data must be a valid dictionary", "status_code": 400}
-                
+
             if "userId" not in corpus_data_input or not corpus_data_input["userId"]:
                 logger.error("Missing required field: userId")
                 return {"error": "User ID is required", "status_code": 400}
-                
+
             if "corpusKey" not in corpus_data_input or not corpus_data_input["corpusKey"]:
                 logger.error("Missing required field: corpusKey")
                 return {"error": "Corpus key is required", "status_code": 400}
-                
+
             cur = conn.cursor()
 
-            # Check if corpus key already exists for this user
-            cur.execute('SELECT COUNT(*) FROM "Corpora" WHERE "userId" = %s AND "corpusKey" = %s;', 
-                       (corpus_data_input["userId"], corpus_data_input["corpusKey"]))
-            if cur.fetchone()[0] > 0:
-                logger.error(f"Corpus key already exists for this user: {corpus_data_input['corpusKey']}")
-                return {"error": "Corpus key already exists for this user", "status_code": 409}  # Conflict
+            # Step 1: Try to fetch existing corpus
+            cur.execute(
+                'SELECT * FROM "Corpora" WHERE "userId" = %s AND "corpusKey" = %s LIMIT 1;',
+                (corpus_data_input["userId"], corpus_data_input["corpusKey"])
+            )
+            existing_row = cur.fetchone()
+            if existing_row:
+                result_columns = [desc[0] for desc in cur.description]
+                result = dict(zip(result_columns, existing_row))
+                logger.info(f"Returning existing corpus: {result}")
+                return {"results": result, "status_code": 200}  # Found
 
+            # Step 2: Insert new corpus if not found
             columns = ', '.join([f'"{key}"' for key in corpus_data_input.keys()])
             placeholders = ', '.join(['%s'] * len(corpus_data_input))
             query = f'INSERT INTO "Corpora" ({columns}) VALUES ({placeholders}) RETURNING *;'
-            
             logger.info(f"Executing query: {query} with values: {tuple(corpus_data_input.values())}")
+
             cur.execute(query, tuple(corpus_data_input.values()))
             row = cur.fetchone()
             conn.commit()
-            
+
             if row:
-                result_columns = [desc[0] for desc in cur.description]  # Get column names from cursor description
-                result = dict(zip(result_columns, row))  # Map column names to row values
-                logger.info(f"create_corpus result: {result}")  
+                result_columns = [desc[0] for desc in cur.description]
+                result = dict(zip(result_columns, row))
+                logger.info(f"create_corpus result: {result}")
                 return {"results": result, "status_code": 201}  # Created
-                
-            logger.info("create_corpus returned no result")
+
+            logger.warning("create_corpus returned no result after insert")
             return {"error": "Failed to create corpus", "status_code": 500}
-            
+
         except psycopg2.IntegrityError as e:
             logger.error(f"Integrity error in create_corpus: {e}")
             conn.rollback()
             return {"error": "Database integrity error. Corpus may already exist.", "status_code": 409}
+
         except psycopg2.OperationalError as e:
             logger.error(f"Database operational error in create_corpus: {e}")
             conn.rollback()
             return {"error": "Database connection error", "status_code": 503}
+
         except Exception as e:
             logger.error(f"An error occurred in create_corpus: {e}")
-            conn.rollback()  
+            conn.rollback()
             return {"error": f"Failed to create corpus: {str(e)}", "status_code": 500}
+
         finally:
             if conn:
                 conn.close()
+
 
     def update_corpus(self, corpus_data_input, corpusId):
         conn = settings.get_db_connection()
