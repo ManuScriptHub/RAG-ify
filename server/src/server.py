@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from api.routes import router as api_router
 from scalar_fastapi import get_scalar_api_reference
 
-app = FastAPI(title="🚀 My FastAPI Project", openapi_url="/openapi.json", debug=False)
+app = FastAPI(title="RAG-ify", openapi_url="/openapi.json", debug=False)
 
 app.include_router(api_router, prefix="/api/v1")
 

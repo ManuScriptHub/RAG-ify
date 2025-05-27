@@ -74,7 +74,7 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
 
         extracted_text = extract_text(file_type, document_bytes_or_url)
         prompt = get_tag_prompt(extracted_text)
-        raw_response = llm_service(prompt, model="gpt", return_full_response=True)
+        raw_response = llm_service(prompt, model="gpt-4.1-mini", return_full_response=True)
         if not raw_response:
             print("LLM service returned empty response")
             raise RuntimeError("Empty response from LLM service")
@@ -110,7 +110,7 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
             document_data["userId"] = userId
             document_data["corpusId"] = corpus_id
             document_data["rawText"] = extracted_text
-            document_data["tags"] = Json(document_tags)
+            # document_data["tags"] = Json(document_tags)
             document_data["docType"] = file_type
             document_data["docName"] = file_name
             document_data["documentId"]= document_id
@@ -126,7 +126,7 @@ def process_document(userId, file_type, document_bytes_or_url, corpus_key, file_
             chunk_data["chunkIndex"] = chunk["chunk_number"]
             chunk_data["chunkText"] =  chunk["content"]
             chunk_data["documentId"] = document_id
-            chunk_data["metaData"] =  llm_service(prompt, model="gpt", return_full_response=True)
+            # chunk_data["metaData"] =  Json(document_tags)
             result = create_document_chunk(chunk_data)
             if not result or not result.get("results"):
                 raise HTTPException(status_code=500, detail="Failed to create document chunk")

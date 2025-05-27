@@ -12,4 +12,6 @@ venv/
 .env.*
 *.pyc
 *.pyc
+
+.env
 .env

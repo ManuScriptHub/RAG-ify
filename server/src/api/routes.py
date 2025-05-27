@@ -731,7 +731,6 @@ async def process_document_data(
         print(f"🔥 Upload failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.post("/rerank")
 async def rerank_documents(request: RerankRequest, api_key: str = Depends(api_validation)):
     try:

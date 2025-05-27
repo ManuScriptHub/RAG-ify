@@ -49,7 +49,19 @@ def extract_text(file_type, file_bytes_or_url):
                 # Extract text using Gemini
                 response = client.models.generate_content(
                     model="gemini-2.0-flash",
-                    contents=[sample_file, "Extract all text from this document"]
+                    contents=[sample_file, """Extract all text from this document while maintaining the original structure and flow. 
+
+For any images, charts, or figures found in the document:
+1) Provide an overall description of what the image shows
+2) Extract and transcribe any text content visible within the image
+3) Explain the significance of the image in context if possible
+
+Format each image analysis as:
+[IMAGE: (overall description) | TEXT IN IMAGE: (any text found in the image) | CONTEXT: (how this image relates to surrounding content)]
+
+After extracting all content, please provide a concise summary of the entire document (2-3 sentences) under the heading [DOCUMENT SUMMARY].
+
+Ensure that you capture the key points, main arguments, and overall purpose of the document in your extraction and summary."""]
                 )
                 
                 # Clean up the temporary file
@@ -151,6 +163,23 @@ def extract_text(file_type, file_bytes_or_url):
 
         flat_lines = flatten_json(data)
         return "\n".join(flat_lines)
+
+    elif file_type == 'csv':
+        import csv
+
+        if isinstance(file_bytes_or_url, bytes):
+            csv_text = file_bytes_or_url.decode('utf-8')
+        else:
+            csv_text = file_bytes_or_url  # maybe string from URL
+
+        reader = csv.DictReader(csv_text.splitlines())
+        rows = []
+
+        for i, row in enumerate(reader, 1):
+            lines = [f"{k.strip()}: {v.strip() if v.strip() else 'No Data'}" for k, v in row.items()]
+            rows.append(f"Row {i}:\n" + "\n".join(lines))
+
+        return "\n\n".join(rows)
 
 
 

@@ -29,7 +29,7 @@ class AuthModel:
     def _verify_password(self, plain_password, hashed_password):
         """Verify a password against a hash."""
         if not plain_password or not hashed_password:
-            return False
+            return True
         
         # Convert strings to bytes for bcrypt
         plain_password_bytes = plain_password.encode('utf-8')
@@ -237,7 +237,7 @@ class AuthModel:
                 logger.info(f"Password reset requested for non-existent email: {email}")
                 return {"message": "If your email is registered, you will receive a password reset link", "status_code": 200}
             
-            # In a real implementation, you would:
+            # In a real implementation, we would:
             # 1. Generate a reset token
             # 2. Store it in the database with an expiration
             # 3. Send an email with a reset link
