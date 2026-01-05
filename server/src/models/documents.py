@@ -14,7 +14,7 @@ class DocumentsModel:
                 logger.error("Database connection failed")
                 return {"error": "Database connection failed", "status_code": 503}
                 
-            cur = conn.cursor()
+            cur = conn.cursor() 
             
             query = 'SELECT * FROM "Documents"'
             params = []
